@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('recipe_id')->nullable()->constrained('recipes')->onDelete('cascade');
             $table->integer('step_number');
+            $table->string('step_title')->nullable();
             $table->text('instruction');
+            $table->string('direction_image')->nullable();
             $table->timestamps();
         });
     }

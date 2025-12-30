@@ -1,17 +1,22 @@
 import AdminLayout from '@/Layouts/AdminLayout';
-import RecipeForm from '@/Components/Recipes/RecipeForm';
+import RecipeForm from './RecipeForm';
 
-export default function Edit({ recipe }) {
+export default function Edit({ recipe, categories, ingredientsList, sectionsList, }) {
     return (
         <AdminLayout>
-            <h4 className="fw-bold mb-4">✏️ Modifier la recette</h4>
+            <div className="max-w-4xl mx-auto">
+                <h1 className="text-2xl font-bold mb-6 text-center p-4">
+                    Modification de la recette : <span className='text-yellow-600'>{recipe.title}</span>
+                </h1>
 
-            <div className="card shadow-sm">
-                <div className="card-body">
+                <div className="bg-white shadow-md rounded-2xl p-6">
                     <RecipeForm
                         recipe={recipe}
-                        submitUrl={`/recipes/${recipe.id}`}
+                        submitUrl={`/admin/recipes/${recipe.alias}`}
                         method="put"
+                        categories={categories}
+                        ingredientsList={ingredientsList}
+                        sectionsList={sectionsList}
                     />
                 </div>
             </div>

@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class Category extends Model
 {
-    protected $fillable = ['name','alias','image'];
+    protected $fillable = ['name', 'alias', 'category_image'];
 
     public function recipes() {
         return $this->belongsToMany(Recipe::class, 'recipe_categories');
@@ -56,11 +56,5 @@ class Category extends Model
             }
             $model->alias = $alias;
         });
-    }
-
-    // Utiliser alias pour le binding des routes
-    public function getRouteKeyName()
-    {
-        return 'alias';
     }
 }

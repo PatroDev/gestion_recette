@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 class Recipe extends Model
 {
     protected $fillable = [
-        'title', 'alias', 'author_id', 'description', 'prep_time', 'cook_time', 'status', 'front_image',
+        'title', 'alias', 'author_id', 'description', 'prep_time', 'cook_time', 'total_time', 'status', 'front_image',
     ];
 
     public function author() {
@@ -21,7 +21,7 @@ class Recipe extends Model
 
     public function ingredients() {
         return $this->belongsToMany(Ingredient::class, 'recipe_ingredients')
-                    ->withPivot('quantity', 'section');
+                    ->withPivot('quantity', 'section_ingredient_id', 'is_optional');
     }
 
     public function directions() {
@@ -30,6 +30,18 @@ class Recipe extends Model
 
     public function nutrition() {
         return $this->hasOne(Nutrition::class);
+    }
+
+    public function sections()
+    {
+        return $this->belongsToMany(
+            SectionIngredient::class,
+            'recipe_ingredients',       // pivot
+            'recipe_id',                // clé dans la pivot
+            'section_ingredient_id'     // clé vers section_ingredients
+        )
+        ->withPivot('ingredient_id', 'quantity', 'is_optional')
+        ->distinct();
     }
 
     /**

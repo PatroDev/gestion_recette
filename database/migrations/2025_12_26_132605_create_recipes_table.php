@@ -20,6 +20,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->integer('prep_time')->nullable();
             $table->integer('cook_time')->nullable();
+            $table->integer('total_time')->nullable();
             // $table->integer('servings')->default(1);
             // $table->string('difficulty')->nullable(); // ['Easy', 'Medium', 'Hard']
             $table->boolean('status')->default(true); // is_featured

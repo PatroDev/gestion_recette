@@ -5,6 +5,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -44,9 +45,9 @@ export default function Register() {
                 <button
                     type="button"
                     onClick={() => window.history.back()}
-                    className="inline-block bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition"
+                    className="flex font-bold bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition"
                 >
-                    ← Retour
+                    <ArrowLeft /> Retour
                 </button>
             </div>
 
@@ -57,32 +58,35 @@ export default function Register() {
             <form onSubmit={submit} className="space-y-6 bg-white p-6 rounded-lg shadow-md">
                 {/* Nom & Prénom */}
                 <div className="flex gap-4">
-                    <div className="w-1/2">
-                        <InputLabel htmlFor="first_name" value="Nom" />
-                        <TextInput
-                            id="first_name"
-                            name="first_name"
-                            value={data.first_name}
-                            className="mt-1 block w-full"
-                            autoComplete="family-name"
-                            onChange={(e) => setData('first_name', e.target.value)}
-                            required
-                        />
-                        <InputError message={errors.first_name} className="mt-2" />
-                    </div>
 
                     <div className="w-1/2">
-                        <InputLabel htmlFor="last_name" value="Prénom" />
+                        <InputLabel htmlFor="last_name" value="Nom" />
                         <TextInput
                             id="last_name"
                             name="last_name"
-                            value={data.last_name}
+                            value={data.last_name ?? ''}
                             className="mt-1 block w-full"
-                            autoComplete="given-name"
+                            autoComplete="family-name"
                             onChange={(e) => setData('last_name', e.target.value)}
+                            aria-invalid={!!errors.last_name}
                             required
                         />
                         <InputError message={errors.last_name} className="mt-2" />
+                    </div>
+
+                    <div className="w-1/2">
+                        <InputLabel htmlFor="first_name" value="Prénom" />
+                        <TextInput
+                            id="first_name"
+                            name="first_name"
+                            value={data.first_name ?? ''}
+                            className="mt-1 block w-full"
+                            autoComplete="given-name"
+                            onChange={(e) => setData('first_name', e.target.value)}
+                            aria-invalid={!!errors.first_name}
+                            required
+                        />
+                        <InputError message={errors.first_name} className="mt-2" />
                     </div>
                 </div>
 
@@ -92,7 +96,7 @@ export default function Register() {
                     <TextInput
                         id="username"
                         name="username"
-                        value={data.username}
+                        value={data.username ?? ''}
                         className="mt-1 block w-full"
                         onChange={(e) => setData('username', e.target.value)}
                     />
@@ -108,7 +112,7 @@ export default function Register() {
                         name="email"
                         value={data.email}
                         className="mt-1 block w-full"
-                        autoComplete="username"
+                        autoComplete="email"
                         onChange={(e) => setData('email', e.target.value)}
                         required
                     />
