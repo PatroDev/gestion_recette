@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class Category extends Model
 {
-    protected $fillable = ['name', 'alias', 'category_image'];
+    protected $fillable = ['name', 'alias', 'category_image', 'dominant_color'];
 
     public function recipes() {
         return $this->belongsToMany(Recipe::class, 'recipe_categories');

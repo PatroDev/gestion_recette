@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\RecipeController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
+use App\Models\Category;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -23,6 +25,7 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('recipes', RecipeController::class);
+    Route::resource('categories', CategoryController::class);
 });
 
 Route::middleware('auth')->group(function () {

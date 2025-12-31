@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Recipe extends Model
@@ -42,6 +43,29 @@ class Recipe extends Model
         )
         ->withPivot('ingredient_id', 'quantity', 'is_optional')
         ->distinct();
+    }
+
+    /**
+     * Summary of appends
+     * @var array
+     */
+    protected $appends = [
+        'front_image_url',
+        'created_at_formatted',
+    ];
+
+    public function getFrontImageUrlAttribute()
+    {
+        return $this->front_image
+            ? Storage::url($this->front_image)
+            : asset('images/recipe-details.png');
+    }
+
+    public function getCreatedAtFormattedAttribute()
+    {
+        return $this->created_at
+            ? $this->created_at->format('d M Y')
+            : null;
     }
 
     /**

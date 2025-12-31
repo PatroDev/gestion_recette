@@ -53,12 +53,14 @@ export default {
                 54: '54px',
                 200: '200px',
                 620: '620px',
+                840: '840px',
             },
 
             height: {
                 22: '22px',
                 60: '60px',
                 640: '640px',
+                600: '600px',
             },
 
             backgroundImage: {

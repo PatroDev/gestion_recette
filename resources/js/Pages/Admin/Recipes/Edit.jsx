@@ -12,7 +12,7 @@ export default function Edit({ recipe, categories, ingredientsList, sectionsList
                 <div className="bg-white shadow-md rounded-2xl p-6">
                     <RecipeForm
                         recipe={recipe}
-                        submitUrl={`/admin/recipes/${recipe.alias}`}
+                        submitUrl={route("admin.recipes.update", recipe.alias)} // `/admin/recipes/${recipe.alias}`
                         method="put"
                         categories={categories}
                         ingredientsList={ingredientsList}

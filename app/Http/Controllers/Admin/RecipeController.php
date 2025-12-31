@@ -34,8 +34,8 @@ class RecipeController extends Controller
             });
         }
 
-        return Inertia::render('Admin/Recipes/List', [
-            'recipes' => $query->paginate(10)->withQueryString(),
+        return Inertia::render('Admin/AdminDashboard', [
+            'recipes' => $query->paginate(20)->withQueryString(),
             'categories'  => Category::select('id','name')->get(),
         ]);
     }
@@ -133,12 +133,14 @@ class RecipeController extends Controller
      */
     public function edit(Recipe $recipe)
     {
-        $recipe->load('categories','ingredients','directions','nutrition');
+        $recipe->load('author', 'categories','ingredients','directions','nutrition', 'sections');
 
         return Inertia::render('Admin/Recipes/Edit', [
             'recipe'      => $recipe,
             'categories'  => Category::select('id','name')->get(),
             'ingredients' => Ingredient::select('id','name')->get(),
+            'ingredientsList' => Ingredient::select('id','name')->get(), //
+            'sectionsList' => SectionIngredient::select('id','nom_section')->get(), //
         ]);
     }
 
@@ -149,88 +151,112 @@ class RecipeController extends Controller
     {
         $validated = $this->validateRecipe($request);
 
-        DB::transaction(function () use ($recipe, $validated, $request) {
+        try {
+            DB::beginTransaction();
 
-            // Replace image recette si nouvelle envoyée
+            // Front Image
             if ($request->hasFile('front_image')) {
-                if ($recipe->front_image) {
+
+                // Supprimer ancienne image
+                if ($recipe->front_image && Storage::disk('public')->exists($recipe->front_image)) {
                     Storage::disk('public')->delete($recipe->front_image);
                 }
+
+                // Stocker nouvelle
                 $validated['front_image'] = $request->file('front_image')
                     ->store('recipes', 'public');
-
-                //  // Supprimer l’ancienne si existe
-                // if ($recipe->front_image && Storage::disk('public')->exists($recipe->front_image)) {
-                //     Storage::disk('public')->delete($recipe->front_image);
-                // }
-
-                // $path = $request->file('front_image')->store('recipes', 'public');
-                // $recipe->front_image = $path;
             }
 
             $recipe->update($validated);
 
+            // CATEGORIES
             $recipe->categories()->sync($validated['categories']);
 
-            // Sync pivot ingredients
+            // INGREDIENTS
             $pivotData = [];
             foreach ($validated['ingredients'] as $item) {
 
-                // Création nouvelle section si demandée
+                // Section auto-create
                 if (($item['section_id'] ?? null) === "new" && !empty($item['newSection'])) {
                     $section = SectionIngredient::create([
-                        'nom_section' => $item['newSection'],
+                        'nom_section' => $item['newSection']
                     ]);
                     $item['section_id'] = $section->id;
                 }
 
-                // Création nouvel ingrédient si demandé
+                // Ingredient auto-create
                 if (($item['id'] ?? null) === "new" && !empty($item['newIngredient'])) {
                     $ingredient = Ingredient::create([
-                        'name' => $item['newIngredient'],
+                        'name' => $item['newIngredient']
                     ]);
                     $item['id'] = $ingredient->id;
                 }
 
                 if (!empty($item['id'])) {
                     $pivotData[$item['id']] = [
-                        'quantity'  => $item['quantity'] ?? null,
-                        'is_optional' => isset($item['is_optional']) ? (bool)$item['is_optional'] : false,
-                        'section_ingredient_id' => $item['section_id'] ?? null,
+                        'quantity' => $item['quantity'] ?: null,
+                        'is_optional' => (bool)($item['is_optional'] ?? false),
+                        'section_ingredient_id' => $item['section_id'] ?: null,
                     ];
                 }
             }
-            // Sync final avec pivot propre
+
             $recipe->ingredients()->sync($pivotData);
 
-            // Directions : remove old + images
-            foreach ($recipe->directions as $dir) {
-                if ($dir->direction_image) {
-                    Storage::disk('public')->delete($dir->direction_image);
-                }
-            }
-            $recipe->directions()->delete();
+            // DIRECTIONS (mise à jour plus intelligente)
+            foreach ($validated['directions'] as $idx => $dir) {
 
-            foreach ($request->directions as $index => $dir) {
-                $imagePath = null;
-                if (!empty($dir['direction_image'])) {
+                $direction = $recipe->directions()->where('step_number', $idx + 1)->first();
+
+                $imagePath = $direction?->direction_image; // conserver ancienne
+
+                if (isset($dir['direction_image']) && $dir['direction_image'] instanceof \Illuminate\Http\UploadedFile) {
+
+                    // Supprime ancienne image
+                    if ($imagePath && Storage::disk('public')->exists($imagePath)) {
+                        Storage::disk('public')->delete($imagePath);
+                    }
+
                     $imagePath = $dir['direction_image']->store('directions', 'public');
                 }
 
-                $recipe->directions()->create([
-                    'step_number' => $index + 1,
-                    'step_title' => $dir['step_title'],
-                    'instruction' => $dir['instruction'],
-                    'direction_image' => $imagePath
-                ]);
+                $recipe->directions()->updateOrCreate(
+                    ['step_number' => $idx + 1],
+                    [
+                        'step_title' => $dir['step_title'],
+                        'instruction' => $dir['instruction'],
+                        'direction_image' => $imagePath
+                    ]
+                );
             }
 
-            // Nutrition
-            $recipe->nutrition()->updateOrCreate([], $validated['nutrition'] ?? []);
-        });
+            // Suppression des étapes supprimées côté front
+            $existingSteps = array_column($validated['directions'], null, 'step_number');
+            foreach ($recipe->directions as $direction) {
+                if (!isset($existingSteps[$direction->step_number])) {
+                    if ($direction->direction_image) {
+                        Storage::disk('public')->delete($direction->direction_image);
+                    }
+                    $direction->delete();
+                }
+            }
 
-        return redirect()->route('admin.recipes.index')
-            ->with('success', 'Recette mise à jour avec succès !');
+            // NUTRITION update ou création
+            if (!empty($validated['nutrition'])) {
+                $recipe->nutrition()->updateOrCreate([], $validated['nutrition']);
+            }
+
+            DB::commit();
+
+            return redirect()->route('admin.recipes.index')
+                ->with('success', 'Recette mise à jour avec succès !');
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+            return back()->withErrors(['server' => 'Une erreur serveur s’est produite'])
+                        ->withInput();
+        }
     }
 
     /**

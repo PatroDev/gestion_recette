@@ -4,6 +4,7 @@ import { Link, router, usePage } from "@inertiajs/react";
 import { Search, Plus, Pencil, Trash2, Filter, PlusSquare, PlusSquareIcon, LucideSatelliteDish, Utensils, UtensilsCrossed } from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import List from "./Recipes/List";
+import Categories from "./Categories/List";
 import {toast} from "sonner";
 
 export default function AdminDashboard({recipes, categories}) {
@@ -28,7 +29,9 @@ export default function AdminDashboard({recipes, categories}) {
             />
 
             {/* Categories */}
-
+            {/* <Categories
+                categories={categories}
+            /> */}
         </AdminLayout>
     );
 }

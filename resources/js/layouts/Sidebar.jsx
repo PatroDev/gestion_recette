@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Eye, LayoutDashboard, User } from 'lucide-react';
+import { Eye, LayoutDashboard, Tags, Utensils } from 'lucide-react';
 
 export default function Sidebar() {
     return (
@@ -24,8 +24,12 @@ export default function Sidebar() {
                     Dashboard
                 </SidebarLink>
 
-                <SidebarLink href="#" icon={User}>
-                    Utilisateurs
+                <SidebarLink href={route('admin.recipes.index')} icon={Utensils}>
+                    Recettes
+                </SidebarLink>
+
+                <SidebarLink href={route('admin.categories.index')} icon={Tags}>
+                    Catégories
                 </SidebarLink>
 
                 <SidebarLink href={route('home')} icon={Eye}>
